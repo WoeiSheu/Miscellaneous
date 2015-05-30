@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1432912339 source:d:\programdata\codeblocks\cpp\squaredup\squaredup\main.cpp
+	<iostream>
+	<map>
+	<sstream>
+	<string>
+	<queue>
+	<stack>
+
