@@ -1,0 +1,22 @@
+Write a perl or python program which generates all possible pronunciations for a sentence with the given dictionary "cmudict.0.7a"
+
+
+e.g., the output for sentence "PRONUNCIATION PRODUCTION" should be:
+
+
+
+P R OW0 N AH2 N S IY0 EY1 SH AH0 N P R AH0 D AH1 K SH AH0 N
+
+P R OW0 N AH2 N S IY0 EY1 SH AH0 N P R OW0 D AH1 K SH AH0 N
+
+P R OW0 N AH2 N S IY0 EY1 SH AH0 N P ER0 D AH1 K SH AH0 N
+
+P R AH0 N AH2 N S IY0 EY1 SH AH0 N P R AH0 D AH1 K SH AH0 N
+
+P R AH0 N AH2 N S IY0 EY1 SH AH0 N P R OW0 D AH1 K SH AH0 N
+
+P R AH0 N AH2 N S IY0 EY1 SH AH0 N P ER0 D AH1 K SH AH0 N
+
+
+
+Take care and do suitable error handling for malformed sentences.

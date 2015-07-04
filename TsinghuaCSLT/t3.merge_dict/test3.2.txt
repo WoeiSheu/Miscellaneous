@@ -1,0 +1,15 @@
+aiming 5
+
+test 1
+
+ki 4
+
+mothly 7.5
+
+aho 5
+
+test1 88
+
+xxlike 5
+
+ste 5.2

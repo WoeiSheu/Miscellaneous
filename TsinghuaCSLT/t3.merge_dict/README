@@ -1,0 +1,4 @@
+write a perl or python program which read in two mapping files (test3.1.txt test3.2.txt) and merge 
+
+their entities (values of the same key are added), output the merged mapping as a new file (the correct result is 
+in test3.result.txt).

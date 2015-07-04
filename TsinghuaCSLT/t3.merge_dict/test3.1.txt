@@ -1,0 +1,13 @@
+test 1
+
+ki 5
+
+lexxing 5
+
+mothly 7.5
+
+oopps 9.5
+
+aho 5
+
+test1 88
