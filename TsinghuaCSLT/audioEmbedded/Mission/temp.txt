@@ -1,0 +1,11 @@
+http://zhidao.baidu.com/link?url=7i6kuoSPOrKbnyOTX_Cczr6OwJARV8CQSqnDPVeVnjiG6XOW2367yT-N8ObhBJ1u8hkXvPlcGbulmtBgsdZsg_
+blog.csdn.net/madongchunqiu/article/details/18614233
+http://baike.baidu.com/link?url=ig2LdIySn0KVv4k2uijFmg8J10LDIOIOXotYGlYJYbf55SGOKEQSlFCfyuLjerBQjmpm-rRce5ERgUnhAQsPba
+http://baike.baidu.com/link?url=b0DoOO0W797qNgxdHWRzQjQTGGe7vT9VIVfBMvxFhyRAd7gEIUgE9BRRjrzCSdY_BbKad2X7WLlHPUsYnHuJb_
+http://ibillxia.github.io/blog/2013/05/18/audio-signal-processing-time-domain-timbre-python-realization/
+https://docs.python.org/2/library/wave.html
+http://blog.jobbole.com/58246/
+http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html
+http://ask.csdn.net/questions/178670
+http://www.cnblogs.com/gala/archive/2011/09/22/2184801.html
+
