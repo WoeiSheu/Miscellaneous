@@ -15,7 +15,7 @@ strInfo = "Prometheus"
 bytes = addInfoToWav.getInfoOfBytes(strInfo)
 infoLen = len(strInfo)
 
-nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/test1.wav")
+nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/Sunburn.wav")
 #plt.subplot(211)
 #plt.plot(time, wave_data[0])
 

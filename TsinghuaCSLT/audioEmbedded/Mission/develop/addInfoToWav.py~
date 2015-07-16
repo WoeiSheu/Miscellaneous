@@ -179,7 +179,7 @@ def setInfoWithFFT(audio, bytes):           #fft 变换为频域嵌入信息
 def test():
     strInfo = "NanaliCCC"
     bytes = getInfoOfBytes(strInfo)
-    print bytes
+    #print bytes
     
     nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/bird.wav")
     wave_data = setInfoWithLSB(wave_data, bytes)

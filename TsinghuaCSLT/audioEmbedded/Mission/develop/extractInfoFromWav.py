@@ -54,11 +54,34 @@ def extractInfoWithMCLT(audio, BlockLen, infoLen):
     
     info = ''
     B = len(audio[0])*2 / BlockLen - 1
+    
+    maxSameBits = 0
+    Loc = {}
+    print len(audio[0])
+    for n in range( len(audio[0])/100 ):
+        smax = 0
+        X = MCLT.FastMCLT(audio[0][n+BlockLen/2:n+3*BlockLen/2])
+        for s in range( 2*len(synchronization) ):
+            if s % 2 == 0:                          #Every Other Frequency
+                continue
+            for m in range(L):
+                if synchronization[s/2] == '1':
+                    smax += (X[s*L+m]/abs(X[s*L+m]) * r[m])
+                else:
+                    smax += -(X[s*L+m]/abs(X[s*L+m]) * r[m])
+        if maxSameBits < smax.real:
+            maxSameBits = smax.real
+            Loc[maxSameBits] = n
+        
+    start = Loc[maxSameBits]
+    print start
+    audio = audio[0][start:]
+    
     for i in range(B-1):                            #range(B) or range(B-1) is all right, because you cannot get to the last block
         if i % 2 == 0:                              #Every Other Block
             continue
         bytes = ''
-        X = MCLT.FastMCLT(audio[0][i*BlockLen/2:(i+2)*BlockLen/2])
+        X = MCLT.FastMCLT(audio[i*BlockLen/2:(i+2)*BlockLen/2])
         for k in range(length):
             if k % 2 == 0:                          #Every Other Frequency
                 continue
@@ -75,8 +98,8 @@ def extractInfoWithMCLT(audio, BlockLen, infoLen):
                 bytes += '0'
     
         #print bytes
-        start = bytes.find(synchronization) + len(synchronization)
-        start = 32
+        #start = bytes.find(synchronization) + len(synchronization)
+        start = len(synchronization)
         bytes = bytes[start:]
         for j in range( infoLen ):
             byte = bytes[j*8:j*8+8]
@@ -130,7 +153,7 @@ def test():
     print info
     
     
-    print nchannels, sampwidth, framerate, nframes
+    #print nchannels, sampwidth, framerate, nframes
     
 if __name__ == "__main__":
     test()
