@@ -3,7 +3,7 @@ Coding for some small questions, about algorithm or other aspects.
 ===
 The problems are:
 
-[Squared Up(九宫格)](../../tree/master/SquareUp)
+[Squared Up(九宫格)](../../tree/master/SquaredUp)
 
 [RecognizeNumber(手写数字识别)](../../tree/master/RecognizeNumber)
 
