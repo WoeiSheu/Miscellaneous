@@ -76,7 +76,18 @@ def write_wave(outputName,params,wave_data):        #输入参数和wave_data,�
 
 
 def test():
-    nchannels, sampwidth, framerate, nframes, wave_data, time = read_wave_data("../wavFile/test1.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = read_wave_data("../wavFile/bird.wav")
+    params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
+    '''
+    data0 = []
+    data0.append(wave_data[0][0:3000])
+    data0.append(wave_data[1][0:3000])
+    nchannels, sampwidth, framerate, nframes, wave_data, time = read_wave_data("../wavFile/result2.wav")
+    data = [[],[]]
+    data[0] = data0[0].tolist() + wave_data[0].tolist()
+    data[1] = data0[1].tolist() + wave_data[1].tolist()
+    write_wave("../wavFile/disposedWav.wav",params,data)
+    '''
     print nchannels, sampwidth, framerate, nframes
     #draw the wave
     #plt.subplot(211)
@@ -84,7 +95,7 @@ def test():
     #plt.subplot(212)
     #plt.plot(time, wave_data[1], c = "g")
     #plt.show()
-
+    
     xfp, freqs, phase = wave_fft(time, wave_data, framerate)
     #print len(xfp),len(freqs), len(phase)
     #plt.subplot(211)

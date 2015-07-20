@@ -117,14 +117,42 @@ def FastIMCLT(X):
     return y
     
 def test():
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("./wavFile/test1.wav")
-    x = [4000]*16
-    X = MCLT(x)
-    y = IMCLT(X)
-    print X,"\n\n",y
-    X = FastMCLT(x)
-    y = FastIMCLT(X)
-    print X,"\n\n",y
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/test1.wav")
+    x = range(4000,8000,2)
+    BL = 32
+    B  = len(x)*2/BL - 1
+    
+    for i in range(B-1):
+        if i == 0:
+            print x[:BL]
+            continue
+        X_prev = MCLT(x[(i-1)*BL/2:(i+1)*BL/2])
+        X_curr = MCLT(x[(i)*BL/2:(i+2)*BL/2])
+        X_next = MCLT(x[(i+1)*BL/2:(i+3)*BL/2])
+        X = X_curr
+        y = IMCLT(X)          #将嵌入信息后的复数域信息反变换到实数域
+        y_prev = IMCLT(X_prev)[BL/2:]
+        y_next = IMCLT(X_next)[:BL/2]
+        y = np.array(y_prev + y_next) + np.array(y)
+        print y[BL/2:]
+    print x[-BL/2:]
+    
+    print "\n\n\n"
+    
+    for i in range(B-1):
+        if i == 0:
+            print x[:BL]
+            continue
+        X_prev = FastMCLT(x[(i-1)*BL/2:(i+1)*BL/2])
+        X_curr = FastMCLT(x[(i)*BL/2:(i+2)*BL/2])
+        X_next = FastMCLT(x[(i+1)*BL/2:(i+3)*BL/2])
+        X = X_curr
+        y = FastIMCLT(X)          #将嵌入信息后的复数域信息反变换到实数域
+        y_prev = FastIMCLT(X_prev).tolist()[BL/2:]
+        y_next = FastIMCLT(X_next).tolist()[:BL/2]
+        y = np.array(y_prev + y_next) + y
+        print y[BL/2:]
+    print x[-BL/2:]
     
 if __name__ == "__main__":
     test()

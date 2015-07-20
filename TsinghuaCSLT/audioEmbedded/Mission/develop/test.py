@@ -11,11 +11,12 @@ import extractInfoFromWav
 import MCLT
 
 BlockLen = 4096
-strInfo = "Prometheus"
+strInfo = "http://cslt.riit.tsinghua.edu.cn/"
 bytes = addInfoToWav.getInfoOfBytes(strInfo)
 infoLen = len(strInfo)
 
-nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/Sunburn.wav")
+nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/outputfile.wav")
+params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
 #plt.subplot(211)
 #plt.plot(time, wave_data[0])
 
@@ -23,8 +24,7 @@ wave_data = addInfoToWav.setInfoWithMCLT(wave_data,bytes)
 #plt.subplot(212)
 #plt.plot(time, wave_data[0], c='g')
 
-params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
-disposeWav.write_wave("../wavFile/result1.wav",params,wave_data)
+disposeWav.write_wave("../wavFile/result2.wav",params,wave_data)
 
 info = extractInfoFromWav.extractInfoWithMCLT(wave_data, BlockLen, infoLen)
 print info

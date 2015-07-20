@@ -45,54 +45,116 @@ def setInfoWithMCLT(audio,bytes):         #以MCLT的方法将数据嵌入音频
     """
     
     BlockLen = 4096
+    synchronization = "001111000011110000111100001111000011110000111100"
+    bytes = synchronization + bytes
+    L = 6                                 #一位扩展为L个频率
+    s = [-1,1,-1,1,-1,1]                       #1对应4位编码
     
-    B = len(audio[0]) / BlockLen          #将左通道的数据通过MCLT变换到复数域
+    #将左通道的数据通过MCLT变换到复数域
+    B = len(audio[0])*2 / BlockLen - 1          #Block数量
+    bytes_segment = []
+    for i in range( len(bytes)/64-1 ):
+        bytes_segment.append(synchronization+bytes[64*i,64*i+64]),
     #######################################
     #以下为嵌入信息的方法
-    synchronization = "00111100001111000011110000111100"
-    bytes = synchronization + bytes
-    L = 4                                 #一位扩展为L个频率
-    s = [-1,1,-1,1]                       #1对应4位编码
-    for i in range(B):
-        if i % 2 == 1:
+    
+    for i in range(B-1):
+        if i % 2 == 0:                    #Every Other Block
             continue
-        X = MCLT.FastMCLT(audio[0][i*BlockLen:(i+1)*BlockLen])
+        X_prev = MCLT.FastMCLT(audio[0][(i-1)*BlockLen/2:(i+1)*BlockLen/2])
+        X_curr = MCLT.FastMCLT(audio[0][i*BlockLen/2:(i+2)*BlockLen/2])
+        X_next = MCLT.FastMCLT(audio[0][(i+1)*BlockLen/2:(i+3)*BlockLen/2])
+        #X = MCLT.FastMCLT(audio[0][i*BlockLen:(i+1)*BlockLen])
+        X = X_curr
         for k in range( len(bytes) ):
+            #Calculate z1 and z2
+            z1 = []
+            z2 = []
+            for l in range(BlockLen/2):
+                if abs(l-k) < 2*L and abs(l-k) % 2 == 0:
+                    temp = pow(-1,l)/( 2.0*math.pi*(l-k-1)*(l-k+1) )
+                    z1.append(temp)
+                    z2.append(temp)
+                elif abs(l-k) == 1:
+                    temp = pow(-1,l)/8.0
+                    z1.append(temp)
+                    z2.append(-temp)
+                else:
+                    temp = 0
+                    z1.append(0)
+                    z2.append(0)
+            
+            ###
             for m in range(L):
                 if bytes[k] == '1':
-                    X[k*L+m] = abs(X[k*L+m])*s[m]
+                    X[(2*k+1)*L+m] = abs(X[(2*k+1)*L+m])*s[m]       #2*k --> Every Other Frequency
                 else:
-                    X[k*L+m] = -abs(X[k*L+m])*s[m]
+                    X[(2*k+1)*L+m] = -abs(X[(2*k+1)*L+m])*s[m]
+            #The following is for compensating the interference
+            for m in range(L):
+                if k < len(synchronization):        #同步序列嵌入方式不同,为防止干扰
+                    temp = np.inner(z1,X_prev)+np.inner(z2,X_next)+1.0/4.0*X[(2*k+1)*L+m-1]-1.0/4.0*X[(2*k+1)*L+m+1]
+                    X[(2*k+1)*L+m] = X[(2*k+1)*L+m] - 2j*temp
     #######################################
         y = MCLT.FastIMCLT(X)          #将嵌入信息后的复数域信息反变换到实数域
-        audio[0][i*BlockLen:(i+1)*BlockLen] = y
+        y_prev = MCLT.FastIMCLT(X_prev).tolist()[BlockLen/2:]
+        #y_prev = audio[0][i*BlockLen/2:(i+1)*BlockLen/2]       #IMCLT变换结果与原始序列不同,故不能如此
+        y_next = MCLT.FastIMCLT(X_next).tolist()[:BlockLen/2]
+        #y_next = audio[0][(i+1)*BlockLen/2:(i+2)*BlockLen/2]   #IMCLT变换结果与原始序列不同,故不能如此
+        y = np.array(y_prev + y_next) + y
+        audio[0][i*BlockLen/2:(i+2)*BlockLen/2] = y
     
-    
-    B = len(audio[1]) / BlockLen       #将右通道的数据通过MCLT变换到复数域
+    '''
+    #将右通道的数据通过MCLT变换到复数域
+    B = len(audio[1])*2 / BlockLen - 1      #Block数量
     #######################################
     #以下为嵌入信息的方法
-    synchronization = "00111100001111000011110000111100"
-    bytes = synchronization + bytes
-    L = 4                                 #一位扩展为L个频率
-    s = [-1,1,-1,1]                       #1对应4位编码
     
-    for i in range(B):
-        if i % 2 == 1:
+    for i in range(B-1):
+        if i % 2 == 0:                    #Every Other Block
             continue
-        X = MCLT.FastMCLT(audio[1][i*BlockLen:(i+1)*BlockLen])
+        X_prev = MCLT.FastMCLT(audio[1][(i-1)*BlockLen/2:(i+1)*BlockLen/2])
+        X_curr = MCLT.FastMCLT(audio[1][(i)*BlockLen/2:(i+2)*BlockLen/2])
+        X_next = MCLT.FastMCLT(audio[1][(i+1)*BlockLen/2:(i+3)*BlockLen/2])
+        #X = MCLT.FastMCLT(audio[0][i*BlockLen:(i+1)*BlockLen])
+        X = X_curr
         for k in range( len(bytes) ):
+            #Calculate z1 and z2
+            z1 = []
+            z2 = []
+            for l in range(BlockLen/2):
+                if abs(l-k) < 2*L and abs(l-k) % 2 == 0:
+                    temp = pow(-1,l)/( 2.0*math.pi*(l-k-1)*(l-k+1) )
+                    z1.append(temp)
+                    z2.append(temp)
+                elif abs(l-k) == 1:
+                    temp = pow(-1,l)/8.0
+                    z1.append(temp)
+                    z2.append(-temp)
+                else:
+                    temp = 0
+                    z1.append(0)
+                    z2.append(0)
+            ###
             for m in range(L):
                 if bytes[k] == '1':
-                    X[k*L+m] = abs(X[k*L+m])*s[m]
+                    X[(2*k+1)*L+m] = abs(X[(2*k+1)*L+m])*s[m]       #2*k --> Every Other Frequency
                 else:
-                    X[k*L+m] = -abs(X[k*L+m])*s[m]
+                    X[(2*k+1)*L+m] = -abs(X[(2*k+1)*L+m])*s[m]
+            #The following is for compensating the interference
+            for m in range(L):
+                temp = np.inner(z1,X_prev)+np.inner(z2,X_next)+1.0/4.0*X[(2*k+1)*L+m-1]-1.0/4.0*X[(2*k+1)*L+m+1]
+                X[(2*k+1)*L+m] = X[(2*k+1)*L+m] - 2j*temp
         #######################################
         y = MCLT.FastIMCLT(X)             #将嵌入信息后的复数域信息反变换到实数域
-        audio[1][i*BlockLen:(i+1)*BlockLen] = y
-    
+        y_prev = MCLT.FastIMCLT(X_prev).tolist()[BlockLen/2:]
+        y_next = MCLT.FastIMCLT(X_next).tolist()[:BlockLen/2]
+        y = np.array(y_prev + y_next) + y
+        audio[1][i*BlockLen/2:(i+2)*BlockLen/2] = y
+    '''
     return audio
     
-def setInfoWithFFT(audio, bytes):
+def setInfoWithFFT(audio, bytes):           #fft 变换为频域嵌入信息
     BlockLen = 4096
     
     B = len(audio[0]) / BlockLen

@@ -45,20 +45,17 @@ def extractInfoWithLSB(audio, BlockLen, infoLen):  #提取以LSB嵌入的信息
     return info
 
 def extractInfoWithMCLT(audio, BlockLen, infoLen):
-    L = 4
-    r = [-1,1,-1,1]                  #扩展后的数组
-    #synchronization = [-1,-1,-1,-1,-1,-1,1,1,1,1,1,1]
-    synchronization = "00111100001111000011110000111100"
+    L = 6
+    r = [-1,1,-1,1,-1,1]                  #扩展后的数组
+    synchronization = "1111111100000000111111110000000011111111000000001111111100000000"
     #length = 8*infoLen + 8*len(synchronization)    #对于需要广播的音频无法使用
     length = BlockLen/2/L                           #Subbands 数量
     
     info = ''
-    B = len(audio[0])*2 / BlockLen - 1
     
     maxSameBits = 0
     Loc = {}
-    print len(audio[0])
-    for n in range( len(audio[0])/100 ):
+    for n in range( 4096 ):
         smax = 0
         X = MCLT.FastMCLT(audio[0][n+BlockLen/2:n+3*BlockLen/2])
         for s in range( 2*len(synchronization) ):
@@ -73,15 +70,16 @@ def extractInfoWithMCLT(audio, BlockLen, infoLen):
             maxSameBits = smax.real
             Loc[maxSameBits] = n
         
-    start = Loc[maxSameBits]
-    print start
-    audio = audio[0][start:]
+    offset = Loc[maxSameBits]
+    print maxSameBits,offset
+    segment = audio[0][offset:]
     
+    B = len(segment)*2 / BlockLen - 1
     for i in range(B-1):                            #range(B) or range(B-1) is all right, because you cannot get to the last block
         if i % 2 == 0:                              #Every Other Block
             continue
         bytes = ''
-        X = MCLT.FastMCLT(audio[i*BlockLen/2:(i+2)*BlockLen/2])
+        X = MCLT.FastMCLT(segment[i*BlockLen/2:(i+2)*BlockLen/2])
         for k in range(length):
             if k % 2 == 0:                          #Every Other Frequency
                 continue
@@ -94,17 +92,27 @@ def extractInfoWithMCLT(audio, BlockLen, infoLen):
             d = d/L
             if d <= 0:         #if sameLen <= 1:
                 bytes += '1'
-            elif d > 0:       #if sameLen >= 3:
+            elif d > 0:        #if sameLen >= 3:
                 bytes += '0'
-    
+
         #print bytes
-        #start = bytes.find(synchronization) + len(synchronization)
         start = len(synchronization)
         bytes = bytes[start:]
-        for j in range( infoLen ):
+        
+        for j in range( 8 ):
             byte = bytes[j*8:j*8+8]
             info += chr( getInt(byte) )
     
+    result = ''
+    interval = (infoLen / 8 + 1) * 8
+    for i in range(len(info)/interval):
+        temp = info[i*interval:i*interval+infoLen]
+        result += temp
+    if len(info[(i+1)*interval:]) >= infoLen:
+        temp = info[(i+1)*interval:(i+1)*interval+infoLen]
+        result += temp
+    info = result
+        
     return info
     
 def extractInfoWithFFT(audio, BlockLen, infoLen):
@@ -119,7 +127,7 @@ def extractInfoWithFFT(audio, BlockLen, infoLen):
         FL = np.fft.rfft( audio[0][i*BlockLen:(i+1)*BlockLen] )
         #FR = np.fft.rfft( audio[1][i*BlockLen:(i+1)*BlockLen] )
         for k in range( length ):
-            if FL[100+k].real > 0:
+            if FL[1000+k].real > 0:
                 bytes += '1'
             else:
                 bytes += '0'
@@ -134,23 +142,26 @@ def extractInfoWithFFT(audio, BlockLen, infoLen):
     
 
 def test():
+    strInfo = "http://cslt.riit.tsinghua.edu.cn/"
+    
     nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result1.wav")
     BlockLen = 4096
-    infoLen = 9
+    infoLen = len(strInfo)
     info = extractInfoWithLSB(wave_data, BlockLen, infoLen)
-    print info
+    print info,'\n\n'
     
     nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result2.wav")
+    #nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/disposedWav.wav")
     BlockLen = 4096
-    infoLen = 9
+    infoLen = len(strInfo)
     info = extractInfoWithMCLT(wave_data, BlockLen, infoLen)
-    print info
+    print info,'\n\n'
     
     nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result3.wav")
     BlockLen = 4096
-    infoLen = 9
+    infoLen = len(strInfo)
     info = extractInfoWithFFT(wave_data, BlockLen, infoLen)
-    print info
+    print info,'\n\n'
     
     
     #print nchannels, sampwidth, framerate, nframes

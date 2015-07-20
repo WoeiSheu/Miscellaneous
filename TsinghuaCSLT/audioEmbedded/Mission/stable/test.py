@@ -11,11 +11,11 @@ import extractInfoFromWav
 import MCLT
 
 BlockLen = 4096
-strInfo = "Prometheus"
+strInfo = "baidu.com"
 bytes = addInfoToWav.getInfoOfBytes(strInfo)
 infoLen = len(strInfo)
 
-nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/test1.wav")
+nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/duck.wav")
 plt.subplot(211)
 plt.plot(time, wave_data[0])
 
@@ -24,7 +24,7 @@ plt.subplot(212)
 plt.plot(time, wave_data[0], c='g')
 
 params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
-disposeWav.write_wave("../wavFile/result1.wav",params,wave_data)
+disposeWav.write_wave("../wavFile/result2.wav",params,wave_data)
 
 info = extractInfoFromWav.extractInfoWithMCLT(wave_data, BlockLen, infoLen)
 print info

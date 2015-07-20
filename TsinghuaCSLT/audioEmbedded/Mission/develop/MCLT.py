@@ -8,6 +8,9 @@ import disposeWav
 pi = math.pi
 
 def MCLT(x):
+    '''
+        Written by the MCLT definition, and it is slow.
+    '''
     M = len(x)/2
     #M = 8192
     h = (2*M)*[0]
@@ -27,6 +30,9 @@ def MCLT(x):
     return X
 
 def IMCLT(X):
+    '''
+        Written by IMCLT definition, and it is slow.
+    '''
     M = len(X)
     #M = 8192
     h = (2*M)*[0]
@@ -53,6 +59,10 @@ def W(M,r):     #Local function: complex exponential
         return w
 
 def FastMCLT(audio):
+    '''
+        Written by the paper 'http://research.microsoft.com/pubs/70128/tr-2005-02.pdf'
+        Prefer to use this.
+    '''
     # determine subbands, M
     L = len(audio)
     M = L/2
@@ -80,6 +90,10 @@ def FastMCLT(audio):
     return X
     
 def FastIMCLT(X):
+    '''
+        Written by the paper 'http://research.microsoft.com/pubs/70128/tr-2005-02.pdf'
+        Prefer to use this.
+    '''
     # determine subbands, M 
     M = len(X)
     # compute modulation function 

@@ -35,8 +35,8 @@ def extractInfoWithLSB(audio, BlockLen, infoLen):  #提取以LSB嵌入的信息
         if synchronization == "":
             break
     
-    start = bytes.find(synchronization)
-    bytes = bytes[start+len(synchronization):]
+    start = bytes.find(synchronization) + len(synchronization)
+    bytes = bytes[start:]
     info = ''        
     for i in range( infoLen ):
         byte = bytes[i*8:i*8+8]
@@ -45,39 +45,65 @@ def extractInfoWithLSB(audio, BlockLen, infoLen):  #提取以LSB嵌入的信息
     return info
 
 def extractInfoWithMCLT(audio, BlockLen, infoLen):
-    L = 4
-    r = [-1,1,-1,1]                  #扩展后的数组
+    L = 6
+    r = [-1,1,-1,1,-1,1]                  #扩展后的数组
     #synchronization = [-1,-1,-1,-1,-1,-1,1,1,1,1,1,1]
-    synchronization = "00111100001111000011110000111100"
+    synchronization = "001111000011110000111100001111000011110000111100"
     #length = 8*infoLen + 8*len(synchronization)    #对于需要广播的音频无法使用
-    length = BlockLen/2/L
+    length = BlockLen/2/L                           #Subbands 数量
     
     info = ''
-    B = len(audio[0]) / BlockLen
-    for i in range(B):
-        bytes = ''
-        if i % 2 == 1:
-            continue
-        X = MCLT.FastMCLT(audio[0][i*BlockLen:(i+1)*BlockLen])
-        for k in range(length):
-            sameLen = 0
+    
+    maxSameBits = 0
+    Loc = {}
+    for n in range( 4096 ):
+        smax = 0
+        X = MCLT.FastMCLT(audio[0][n:n+BlockLen])
+        for s in range( 2*len(synchronization) ):
+            if s % 2 == 0:                          #Every Other Frequency
+                continue
             for m in range(L):
-                if X[k*L+m].real > 0 and (m % 2 == 1):
-                    sameLen += 1
-                elif X[k*L+m].real < 0 and (m % 2 == 0):
-                    sameLen += 1
-            if sameLen <= 1:         #if sameLen <= 1:
-                bytes += '0'
-            elif sameLen >= 3:       #if sameLen >= 3:
+                if synchronization[s/2] == '1':
+                    smax += (X[s*L+m]/abs(X[s*L+m]) * r[m])
+                else:
+                    smax += -(X[s*L+m]/abs(X[s*L+m]) * r[m])
+        if maxSameBits < smax.real:
+            maxSameBits = smax.real
+            Loc[maxSameBits] = n
+        
+    offset = Loc[maxSameBits] - BlockLen/2
+    print maxSameBits,offset
+    segment = audio[0][offset:]
+    B = len(segment)*2 / BlockLen - 1
+    for i in range(B-1):                            #range(B) or range(B-1) is all right, because you cannot get to the last block
+        
+        if i % 2 == 0:                              #Every Other Block
+            continue
+        bytes = ''
+        X = MCLT.FastMCLT(segment[i*BlockLen/2:(i+2)*BlockLen/2])
+        for k in range(length):
+            if k % 2 == 0:                          #Every Other Frequency
+                continue
+            d = 0.0
+            for m in range(L):
+                if X[k*L+m].real > 0:
+                    d += -r[m]
+                if X[k*L+m].real < 0:
+                    d += r[m]
+            d = d/L
+            if d <= 0:         #if sameLen <= 1:
                 bytes += '1'
+            elif d > 0:       #if sameLen >= 3:
+                bytes += '0'
     
         #print bytes
-        start = bytes.find(synchronization)
-        bytes = bytes[start+len(synchronization):]
+        start = len(synchronization)
+        bytes = bytes[start:]
+        
         for j in range( infoLen ):
             byte = bytes[j*8:j*8+8]
             info += chr( getInt(byte) )
-
+    
     return info
     
 def extractInfoWithFFT(audio, BlockLen, infoLen):
@@ -97,8 +123,8 @@ def extractInfoWithFFT(audio, BlockLen, infoLen):
             else:
                 bytes += '0'
         
-        start = bytes.find(synchronization)
-        bytes = bytes[start+len(synchronization):]
+        start = bytes.find(synchronization) + len(synchronization)
+        bytes = bytes[start:]
         for j in range( infoLen ):
             byte = bytes[j*8:j*8+8]
             info += chr( getInt(byte) )
@@ -107,26 +133,27 @@ def extractInfoWithFFT(audio, BlockLen, infoLen):
     
 
 def test():
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("./wavFile/result1.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result1.wav")
     BlockLen = 4096
     infoLen = 9
     info = extractInfoWithLSB(wave_data, BlockLen, infoLen)
     print info
     
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("./wavFile/result2.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result2.wav")
+    #nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("/root/record1.wav")
     BlockLen = 4096
     infoLen = 9
     info = extractInfoWithMCLT(wave_data, BlockLen, infoLen)
     print info
     
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("./wavFile/result3.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/result3.wav")
     BlockLen = 4096
     infoLen = 9
     info = extractInfoWithFFT(wave_data, BlockLen, infoLen)
     print info
     
     
-    print nchannels, sampwidth, framerate, nframes
+    #print nchannels, sampwidth, framerate, nframes
     
 if __name__ == "__main__":
     test()

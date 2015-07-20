@@ -45,17 +45,25 @@ def setInfoWithMCLT(audio,bytes):         #以MCLT的方法将数据嵌入音频
     """
     
     BlockLen = 4096
-    synchronization = "00111100001111000011110000111100"
-    bytes = synchronization + bytes
-    L = 4                                 #一位扩展为L个频率
-    s = [-1,1,-1,1]                       #1对应4位编码
+    synchronization = "1111111100000000111111110000000011111111000000001111111100000000"
+    #bytes = synchronization + bytes
+    L = 6                                 #一位扩展为L个频率
+    s = [-1,1,-1,1,-1,1]                       #1对应4位编码
     
     #将左通道的数据通过MCLT变换到复数域
     B = len(audio[0])*2 / BlockLen - 1          #Block数量
+    bytes_segment = []
+    segment_length = 64
+    for i in range( B-1 ):
+        if (i+1)*segment_length <= len(bytes):
+            bytes_segment.append(synchronization+bytes[segment_length*i:segment_length*i+segment_length])
+        else:
+            break
+    bytes_segment.append(synchronization+bytes[segment_length*i:])
     #######################################
     #以下为嵌入信息的方法
     
-    for i in range(B-1):
+    for i in range( B-1 ):
         if i % 2 == 0:                    #Every Other Block
             continue
         X_prev = MCLT.FastMCLT(audio[0][(i-1)*BlockLen/2:(i+1)*BlockLen/2])
@@ -63,7 +71,7 @@ def setInfoWithMCLT(audio,bytes):         #以MCLT的方法将数据嵌入音频
         X_next = MCLT.FastMCLT(audio[0][(i+1)*BlockLen/2:(i+3)*BlockLen/2])
         #X = MCLT.FastMCLT(audio[0][i*BlockLen:(i+1)*BlockLen])
         X = X_curr
-        for k in range( len(bytes) ):
+        for k in range( len(bytes_segment[(i/2)%len(bytes_segment)]) ):
             #Calculate z1 and z2
             z1 = []
             z2 = []
@@ -83,7 +91,7 @@ def setInfoWithMCLT(audio,bytes):         #以MCLT的方法将数据嵌入音频
             
             ###
             for m in range(L):
-                if bytes[k] == '1':
+                if bytes_segment[(i/2)%len(bytes_segment)][k] == '1':
                     X[(2*k+1)*L+m] = abs(X[(2*k+1)*L+m])*s[m]       #2*k --> Every Other Frequency
                 else:
                     X[(2*k+1)*L+m] = -abs(X[(2*k+1)*L+m])*s[m]
@@ -99,6 +107,12 @@ def setInfoWithMCLT(audio,bytes):         #以MCLT的方法将数据嵌入音频
         y_next = MCLT.FastIMCLT(X_next).tolist()[:BlockLen/2]
         #y_next = audio[0][(i+1)*BlockLen/2:(i+2)*BlockLen/2]   #IMCLT变换结果与原始序列不同,故不能如此
         y = np.array(y_prev + y_next) + y
+        #The following is according to experience
+        for yi in range(len(y)):
+            if y[yi] > 30000:
+                y[yi] = 30000
+            if y[yi] < -30000:
+                y[yi] = -30000
         audio[0][i*BlockLen/2:(i+2)*BlockLen/2] = y
     
     '''
@@ -163,11 +177,11 @@ def setInfoWithFFT(audio, bytes):           #fft 变换为频域嵌入信息
         FR = np.fft.rfft( audio[1][i*BlockLen:(i+1)*BlockLen] )
         for k in range( len(bytes) ):
             if bytes[k] == '1':
-                FL[100+k] = abs(FL[100+k])
-                FR[100+k] = abs(FR[100+k])
+                FL[1000+k] = abs(FL[1000+k])        #1kHz以上,因为分段导致每段之间最高只有2kHz左右
+                FR[1000+k] = abs(FR[1000+k])
             else:
-                FL[100+k] = -abs(FL[100+k])
-                FR[100+k] = -abs(FR[100+k])
+                FL[1000+k] = -abs(FL[1000+k])
+                FR[1000+k] = -abs(FR[1000+k])
     
         outputLeft  = np.fft.irfft(FL)
         outputRight = np.fft.irfft(FR)
@@ -177,21 +191,21 @@ def setInfoWithFFT(audio, bytes):           #fft 变换为频域嵌入信息
     return audio
 
 def test():
-    strInfo = "NanaliCCC"
+    strInfo = "http://cslt.riit.tsinghua.edu.cn/"
     bytes = getInfoOfBytes(strInfo)
     #print bytes
     
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/bird.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/outputfile.wav")
     wave_data = setInfoWithLSB(wave_data, bytes)
     params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
     disposeWav.write_wave("../wavFile/result1.wav",params,wave_data)
     
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/bird.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/outputfile.wav")
     wave_data = setInfoWithMCLT(wave_data,bytes)
     params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
     disposeWav.write_wave("../wavFile/result2.wav",params,wave_data)
 
-    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/bird.wav")
+    nchannels, sampwidth, framerate, nframes, wave_data, time = disposeWav.read_wave_data("../wavFile/outputfile.wav")
     wave_data = setInfoWithFFT(wave_data,bytes)
     params = (nchannels, sampwidth, framerate, nframes,'NONE', 'not compressed')
     disposeWav.write_wave("../wavFile/result3.wav",params,wave_data)
