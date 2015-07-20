@@ -12,3 +12,5 @@ The problems are:
 [ThreeCharacters(三字符构成字符串)](../../tree/master/ThreeCharacters)
 
 [TsinghuaCSLT(清华语音实验室)](../../tree/master/TsinghuaCSLT)
+
+[ReadFolder](../../tree/master/ReadFolder)
