@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1438530604 source:d:\programdata\codeblocks\cpp\threecharacters\main.cpp
+	<iostream>
+	"PowMatrix.h"
+
+1438530557 d:\programdata\codeblocks\cpp\threecharacters\include\powmatrix.h
+
+1438529966 source:d:\programdata\codeblocks\cpp\threecharacters\src\powmatrix.cpp
+	"PowMatrix.h"
+
