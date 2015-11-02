@@ -14,3 +14,5 @@ The problems are:
 [TsinghuaCSLT(清华语音实验室)](../../tree/master/TsinghuaCSLT)
 
 [ReadFolder](../../tree/master/ReadFolder)
+
+[InvitePanel](../../tree/master/InvitePanel)

@@ -1,0 +1,59 @@
+.zhihu {
+    width: 70%;
+    border: 1px solid #dedede;
+    border-radius: 2%;
+    padding: 1% 1%;
+}
+.search {
+    display: inline-block;
+}
+.search > input {
+    height: 22px;
+    border-radius: 3px;
+}
+.search > #hasInvited {
+    font-size: 16px;
+    color: #999999;
+    display: none;
+}
+#hasInvited > a {
+    text-decoration: none;
+    color: #0051cf;
+}
+.user {
+    display: inline-block;
+    width: 49.5%;
+}
+.user > .user-avatar {
+    float: left;
+    display: inline-block;
+}
+.user > .invite {
+    float: right;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    top: -52px;
+    background: #0067cf;
+    /*background: -webkit-gradient(radial,25 25,0,25 25,16,from(#0067cf),to(#0059bb));*/
+    font: bold 14px Monospace;
+    color: #ffffff;
+    border-radius: 6px;
+    margin-right: 16px;
+    padding: 4px 8px;
+}
+.user > .user-name {
+    font-size: 14px;
+    color: #0051cf;
+    font-weight: bold;
+    position: relative;
+    left: 12px;
+    top: -12px;
+    margin-bottom: -10px;
+}
+.user > .user-bio {
+    font-size: 14px;
+    position: relative;
+    left: 12px;
+    margin-top: -10px;
+}
